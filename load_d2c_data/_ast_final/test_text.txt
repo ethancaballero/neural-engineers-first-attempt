@@ -1,0 +1,47 @@
+# altered from github.com/IndicoDataSolutions/Passage/blob/master/passage/preprocessing.py
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#import numpy as np
+# altered from github.com/IndicoDataSolutions/Passage/blob/master/passage/preprocessing.py
+
+'''\\nCreated on 6 Apr 2011\\n\\n@author: salama\\n#''';y=[];z=[]
+
+#"""
+#z = np.zeros(6)
+
+q = "''tur'nt''"
+r = '""r"nt""'
+
+def left_rotate(s):
+    s = s[-1]+s[:-1]
+    s = s.lstrip('0')
+    return s
+
+def right_rotate(s):
+    s = s[1:]+s[0]
+    s = s.lstrip('0')
+    return s
+
+t = int(raw_input())
+while t :
+    t=t-1
+    n = raw_input()
+    ans = max(int(left_rotate(right_rotate(n))),int(right_rotate(left_rotate(n))))
+    temp = n[:]
+    for i in range(len(n)) :
+        temp = left_rotate(temp)
+        ans = max(ans,int(temp))
+    temp = n[:]
+    for i in range(len(n)) :
+        temp = right_rotate(temp)
+        ans = max(ans,int(temp))
+    print ans
+    #"""
+
+"""
+q = "''tur'nt''"
+r = '""r"nt""'
+
+print 1, 2
+print 1
+"""
