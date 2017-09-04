@@ -2,18 +2,18 @@
 
 NE implementation in TensorFlow for learning to engineer.
 
-This model is a [decription2code task] (https://github.com/openai/requests-for-research/pull/5) baseline (rnn-based seq2seq with AST decoder & adaptive number of attention hops per decode step) (with two stage SL then RL training) that yielded underwhelming results.
+This model is a [decription2code task](https://github.com/openai/requests-for-research/pull/5) baseline (rnn-based seq2seq with AST decoder & adaptive number of attention hops per decode step) (with two stage SL then RL training) that yielded underwhelming results.
 
 ## Acknowledgments
-[Barronalex] (https://github.com/barronalex/Dynamic-Memory-Networks-in-TensorFlow)'s and [Therne] (https://github.com/therne/dmn-tensorflow)'s tf-DMN+s,
+[Barronalex](https://github.com/barronalex/Dynamic-Memory-Networks-in-TensorFlow)'s and [Therne](https://github.com/therne/dmn-tensorflow)'s tf-DMN+s,
 
-[Alexander Johansen's seq2seq modules] (https://github.com/alrojo/tensorflow-tutorial/blob/master/lab3_RNN/tf_utils.py#L11),
+[Alexander Johansen's seq2seq modules](https://github.com/alrojo/tensorflow-tutorial/blob/master/lab3_RNN/tf_utils.py#L11),
 
-Jon Gauthier's [RML attempt] (https://github.com/hans/ipython-notebooks/blob/master/Reward-augmented%20maximum%20likelihood%20learning%20for%20autoencoders.ipynb),
+Jon Gauthier's [RML attempt](https://github.com/hans/ipython-notebooks/blob/master/Reward-augmented%20maximum%20likelihood%20learning%20for%20autoencoders.ipynb),
 
-MarkNeumann's [adapative attention module] (https://github.com/DeNeutoy/act-rte-inference/blob/master/AdaptiveIAAModel.py#L197-L247)
+MarkNeumann's [adapative attention module](https://github.com/DeNeutoy/act-rte-inference/blob/master/AdaptiveIAAModel.py#L197-L247)
 
-and seqGANs [policy gradient modules] (https://github.com/LantaoYu/SeqGAN/tree/master/pg_bleu).
+and seqGANs [policy gradient modules](https://github.com/LantaoYu/SeqGAN/tree/master/pg_bleu).
 
 
 ## Repository Contents
@@ -22,8 +22,7 @@ and seqGANs [policy gradient modules] (https://github.com/LantaoYu/SeqGAN/tree/m
 | `dmn_plus.py` | contains the DMN+ model |
 | `dmn_train.py` | trains the model on a specified (-b) babi task|
 | `dmn_test.py` | tests the model on a specified (-b) babi task |
-| `get_data.sh` | shell script to fetch & load Description2Code Dataset |
-#| `fetch_babi_data.sh` | shell script to fetch bAbI tasks (has some useful fetch scripts in it) |
+#| `get_data.sh` | shell script to fetch & load Description2Code Dataset |
 
 
 -----
@@ -85,11 +84,15 @@ output of dec step:                    a   =   raw_input(       )   ;   print(  
 
 ###### How I would re-do project today:
 -Transformer from "attention is all you need" https://arxiv.org/abs/1706.03762
+
 -Use a Differentiable Programming Language as decribed in "Differentiable Functional Program Interpreters" https://arxiv.org/abs/1611.01988 so that you can scrap all score/value estimators from RL and just get the exact gradient of the reward with respect to the parameters
+
 -Hindsight Experience Replay https://arxiv.org/abs/1707.01495
+
 -better/bigger data such as maybe the 150370 docstring2code pairs from https://github.com/EdinburghNLP/code-docstring-corpus or the 17000 programming challenge description2code pairs (mine was just 7000) that Alex Skidanov recently acquired.
 
-^if you're interested in trying any of this, message me or join near.ai
+
+^if you're interested in trying any of this, message me or join [near.ai](http://near.ai/)
 
 
 
