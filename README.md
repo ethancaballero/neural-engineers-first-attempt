@@ -67,7 +67,7 @@ There's some toy data in tmp folder for if you don't feel like downloading full 
 If you plan on using full data, delete all files in tmp folder before running `sh get_data.sh` and maybe before `python dmn_train.py` as well.
 
 
-###### Results:
+## Results:
 outputs always overfit to simplistic incorrect answers such as 
 a=raw_input(); print(2-a)
 
@@ -83,7 +83,7 @@ output of dec step:                    a   =   raw_input(       )   ;   print(  
 ```
 
 
-###### How I would re-do project today:
+## How I would re-do project today:
 -Transformer from "attention is all you need" https://arxiv.org/abs/1706.03762
 
 -Use a Differentiable Programming Language as decribed in "Differentiable Functional Program Interpreters" https://arxiv.org/abs/1611.01988 so that you can scrap all score/value estimators from RL and just get the exact gradient of the reward with respect to the parameters
