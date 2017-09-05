@@ -69,7 +69,7 @@ If you plan on using full data, delete all files in tmp folder before running `s
 
 ## Results:
 outputs always overfit to simplistic incorrect answers such as 
-a=raw_input(); print(2-a)
+`a=raw_input(); print(2-a)`
 
 Interestingly, model learned dynamic adaptation of number attention hops (per each decode step) that seems to correlate with complexity of each decode step:
 
