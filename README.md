@@ -20,8 +20,8 @@ and seqGANs [policy gradient modules](https://github.com/LantaoYu/SeqGAN/blob/ma
 | file | description |
 | --- | --- |
 | `dmn_plus.py` | contains the DMN+ model |
-| `dmn_train.py` | trains the model on a specified (-b) babi task|
-| `dmn_test.py` | tests the model on a specified (-b) babi task |
+| `dmn_train.py` | trains the model on a specified task|
+| `dmn_test.py` | tests the model on a specified task |
 | `get_data.sh` | shell script to fetch & load Description2Code Dataset |
 
 
