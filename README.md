@@ -75,7 +75,6 @@ Interestingly, model learned dynamic adaptation of number attention hops (per ea
 
 values in 1st line are number of attention hops for each decode step;
 values in 2nd line are output of each decode step.
-
 The two lines are aligned below for visualization purposes:
 ```
 num of attn hops per dec step: array([ 1., 1., 6.,          1., 2., 1., 3.,       6., 2., 7.,  2.,  3.])
