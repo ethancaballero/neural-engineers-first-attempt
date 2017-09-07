@@ -9,11 +9,11 @@ This model is a [decription2code task](https://github.com/openai/requests-for-re
 
 [Alexander Johansen's seq2seq modules](https://github.com/alrojo/tensorflow-tutorial/blob/master/lab3_RNN/tf_utils.py#L11),
 
-Jon Gauthier's [RML attempt](https://github.com/hans/ipython-notebooks/blob/master/Reward-augmented%20maximum%20likelihood%20learning%20for%20autoencoders.ipynb),
+Jon Gauthier's [RML attempt](https://github.com/hans/ipython-notebooks/blob/master/Reward-augmented%20maximum%20likelihood%20learning%20for%20autoencoders.ipynb) & [policy gradient module](https://github.com/hans/thinstack-rl/blob/master/reinforce.py#L25)
 
 MarkNeumann's [adapative attention module](https://github.com/DeNeutoy/act-rte-inference/blob/master/AdaptiveIAAModel.py#L197-L247)
 
-and seqGANs [policy gradient modules](https://github.com/LantaoYu/SeqGAN/tree/master/pg_bleu).
+and seqGANs [policy gradient modules](https://github.com/LantaoYu/SeqGAN/blob/master/generator.py#L105-L113).
 
 
 ## Repository Contents
