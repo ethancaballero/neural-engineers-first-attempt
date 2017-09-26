@@ -84,7 +84,7 @@ output of dec step:                    a   =   raw_input(       )   ;   print(  
 ```
 
 
-## How I would re-do project today:
+## How project would be approached differently today:
 -Transformer from "attention is all you need" https://arxiv.org/abs/1706.03762
 
 -Use a Differentiable Programming Language as decribed in "Differentiable Functional Program Interpreters" https://arxiv.org/abs/1611.01988 so that you can scrap all score/value estimators from RL and just get the exact gradient of the reward with respect to the parameters
