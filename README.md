@@ -93,7 +93,7 @@ output of dec step:                    a   =   raw_input(       )   ;   print(  
 
 -unsupervisedly pretrain the encoder & decoder
 
--better/bigger data such as maybe the 150370 docstring2code pairs from https://github.com/EdinburghNLP/code-docstring-corpus or the 17000 programming challenge description2code pairs (mine was just 7000) that Alex Skidanov recently acquired.
+-better/bigger data such as maybe the 150370 docstring2code pairs from https://github.com/EdinburghNLP/code-docstring-corpus or the 17000 programming challenge description2code pairs (original was just 7000) that Alex Skidanov recently acquired.
 
 
 ^if you're interested in trying any of this, message me or join [near.ai](http://near.ai/)
