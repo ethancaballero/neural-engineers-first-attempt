@@ -44,7 +44,6 @@ def get_problem_list(url):
 	return messages
 
 def get_solution_ids(name, language):
-	print language
 	
 	'''IF IT'S BEEN A LONG TIME SINCE THE LAST TIME YOU USED THIS CODE, YOU NEED TO LOG IN AGAIN AND SEE WHAT CURRENT JSESSIONID AND 39ce7 ARE'''
 	d = {'JSESSIONID': 'FBAAF89D197D7A5C7E95C536A7D31A7A-n1', '39ce7': 'CFtRZMGC'}
@@ -54,7 +53,6 @@ def get_solution_ids(name, language):
 
 	url = 'http://codeforces.com/problemset/status/' + name[0] + '/problem/' + name[1]
 
-	#c = requests.get('http://codeforces.com/problemset/status/1/problem/A', cookies = d)
 	c = requests.get(url, cookies = d)
 
 	m = re.search('meta name="X-Csrf-Token" content="(.*)"', c.text)
@@ -63,10 +61,7 @@ def get_solution_ids(name, language):
 
 	csrf_token = m.groups(1)
 
-
-	#'''
 	if language == 'python':
-		print "python_search"
 		#c = requests.post("http://codeforces.com/problemset/status/1/problem/A", 
 		c = requests.post(url,
 		data = {'csrf_token':csrf_token, 'action':'setupSubmissionFilter', 'frameProblemIndex':'A', 'verdictName':'OK', 'programTypeForInvoker':'python.2', 'comparisonType':'NOT_USED', 'judgedTestCount':'', '_tta':'199'},  
@@ -74,7 +69,6 @@ def get_solution_ids(name, language):
 		cookies = d
 		)
 	elif language == 'c++':
-		print "c++_search"
 		#c = requests.post("http://codeforces.com/problemset/status/1/problem/A", 
 		c = requests.post(url, 
 		data = {'csrf_token':csrf_token, 'action':'setupSubmissionFilter', 'frameProblemIndex':'A', 'verdictName':'OK', 'programTypeForInvoker':'cpp.g++', 'comparisonType':'NOT_USED', 'judgedTestCount':'', '_tta':'199'},  
@@ -98,18 +92,13 @@ def get_solution_ids(name, language):
 	text = soup.select("body a")
 
 	for row in text:
-		#print row
 		message = ""
 		raw = str(row)
 		body = re.search('submissionid="(.*)" t', raw)
 		if body != None:
 			w = body.group(1)
-			#print w
 			message = str(w)
 			messages.append(message)
-
-	#print "messages"
-	#print messages
 
 	return messages
 
@@ -119,9 +108,6 @@ def get_description(i):
 	failed_to_download_d = []
 
 	url = 'http://codeforces.com/problemset/problem/' + str(i[0]) + '/' + str(i[1])
-	#url = "https://www.codechef.com/api/contests/PRACTICE/problems/" + str(i)
-
-	print url
 
 	page = requests.get(url)
 
@@ -143,20 +129,10 @@ def get_description(i):
 	if html_content==None:
 		failed_to_download_d.append(i)
 
-	#print html_content
-
 	if re.search('src="http://codeforces.com/predownloaded', html_content.replace("\\", "")) == None and re.search('src="http://espresso.codeforces.com', html_content.replace("\\", "")) == None and re.search('"message":"Problem is not visible now. Please try again later."', html_content) == None and re.search('Statement is not available', html_content) == None:
 
 		body = re.findall('</div></div><div>(.+?)<script type="text/javascript">', html_content, flags=re.S)
 		
-		#if body == None:
-
-		#body = BeautifulSoup(page.json()['body']).get_text()
-
-		print i
-		#print body
-
-		#w = body.group(1)
 		w = body[0]
 		w = w.replace('class="upper-index">', 'class="upper-index">^')
 
@@ -207,16 +183,12 @@ def get_solutions(contest, solution_ids):
 def get_solution(contest, solution_id):
 	url = 'http://codeforces.com/contest/' + str(contest[0]) + '/submission/' + str(solution_id)
 	
-	print url
-
 	page = requests.get(url)
 	if str(page) == "<Response [503]>":
 		while str(page) == "<Response [503]>":
 			time.sleep(1)
 			page = requests.get(url)
 	html_content = page.text
-
-	#print html_content
 
 	soup = BeautifulSoup(html_content, "html.parser")
 
@@ -251,9 +223,6 @@ def download_all_challenge_names(filename):
 				problem_list.append(j)
 	target.write(str(problems))
 
-
-#download_all_challenge_names('codechef_problem_names.txt')
-
 def download_descriptions_solutions(filename, index_n):
 	root_dir = 'codeforces_data'
 
@@ -270,33 +239,18 @@ def download_descriptions_solutions(filename, index_n):
 	for line in f:
 		raw = eval(str(line))
 
-	#print raw
-
 	a = ""
 	b = ""
 
 	all_names = raw
-	#all_names = raw[start:end]
-
-	#language = ["python"]
 	language = ["python", "c++"]
 
 	for idx, i in enumerate(all_names):
 
 		descriptions, left_out, failed_to_download_d = get_description(i)
-		print i
 		if i not in left_out:
 			if not os.path.exists(root_dir):
 			    os.makedirs(root_dir)
-
-			'''
-			cat_dir = root_dir + "/" + category
-
-			if not os.path.exists(cat_dir):
-			    os.makedirs(cat_dir)
-
-			save_dir = cat_dir + "/" + i
-			#'''
 
 			save_dir = root_dir + "/" + i[0] + "_" + i[1]
 
@@ -314,58 +268,32 @@ def download_descriptions_solutions(filename, index_n):
 			description_file.write(descriptions[0])
 
 			ids_l = []
-			print language
 			for l in language:
-				print "l"
-				print l
 				ids = get_solution_ids(i, l)
 				ids_l.append(ids)
 
-				print ids
-				#solutions, failed_to_download_s = get_solutions(i, ids)
 				solutions = get_solutions(i, ids)
-				#print failed_to_download_s
 
 				solution_dir = save_dir + "/solutions_" + l
 
 				if not os.path.exists(solution_dir):
 				    os.makedirs(solution_dir)
 
-				#print solutions
-
-				print 'len(solutions)'
-				print len(solutions)
-				'''
-				if len(solutions) != 50:
-					hdghfdhgf
-					'''
 				for jdx, j in enumerate(solutions):
-					#solutions[j]
-
-					print len(solutions[j])
 					if len(solutions[j]) < 10000:
-						#solution_file_path = solution_dir + "/" + ids[jdx] + ".txt"
 						solution_file_path = solution_dir + "/" + j + ".txt"
 						solution_file = open(solution_file_path, 'w')
 						solution_file.write(solutions[j])
 
-
-			#remove problems with zero solutions
-			#'''
 			if len(ids_l[0]) == 0 and len(ids_l[1]) == 0:
 				shutil.rmtree(save_dir)
-				#'''
 
-	        #url = 'https://www.codechef.com/status/%d?sort_by=All&sorting_order=asc&language=4&status=15&handle=&Submit=GO' % (name)
-
-	#'''
-	print "Finished download process"
+	print("Finished download process")
 	if len(failed_to_download) > 0:
-	    print "Following challenges failed to download: " + str(failed_to_download)
-	    #'''
+	    print("Following challenges failed to download: " + str(failed_to_download))
 	
 parser = argparse.ArgumentParser()
-parser.add_argument('--index', type=str, default="index", help='')
+parser.add_argument('--index', type=str, default="1", help='')
 args = parser.parse_args()
 
 index_n = args.index

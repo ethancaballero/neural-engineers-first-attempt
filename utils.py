@@ -18,8 +18,6 @@ def get_target_length(sequence):
 
 
 '''alrojo'''
-
-
 def sequence_loss_tensor(logits, targets, weights, num_classes,
                          average_across_timesteps=True,
                          softmax_loss_function=None, name=None):

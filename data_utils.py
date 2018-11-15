@@ -57,38 +57,14 @@ def gunzip_file(gz_path, new_path):
 
 def get_wmt_enfr_train_set(directory):
   """Download the WMT en-fr training corpus to directory unless it's there."""
-  #train_path = os.path.join(directory, "giga-fren.release2.fixed")
   train_path = os.path.join(directory, "train")
-  """
-  if not (gfile.Exists(train_path +".fr") and gfile.Exists(train_path +".en")):
-    corpus_file = maybe_download(directory, "training-giga-fren.tar",
-                                 _WMT_ENFR_TRAIN_URL)
-    print("Extracting tar file %s" % corpus_file)
-    with tarfile.open(corpus_file, "r") as corpus_tar:
-      corpus_tar.extractall(directory)
-    gunzip_file(train_path + ".fr.gz", train_path + ".fr")
-    gunzip_file(train_path + ".en.gz", train_path + ".en")
-    """
   return train_path
 
 
 def get_wmt_enfr_dev_set(directory):
   """Download the WMT en-fr training corpus to directory unless it's there."""
-  #dev_name = "newstest2013"
   dev_name = "validate"
   dev_path = os.path.join(directory, dev_name)
-  """
-  if not (gfile.Exists(dev_path + ".fr") and gfile.Exists(dev_path + ".en")):
-    dev_file = maybe_download(directory, "dev-v2.tgz", _WMT_ENFR_DEV_URL)
-    print("Extracting tgz file %s" % dev_file)
-    with tarfile.open(dev_file, "r:gz") as dev_tar:
-      fr_dev_file = dev_tar.getmember("dev/" + dev_name + ".fr")
-      en_dev_file = dev_tar.getmember("dev/" + dev_name + ".en")
-      fr_dev_file.name = dev_name + ".fr"  # Extract without "dev/" prefix.
-      en_dev_file.name = dev_name + ".en"
-      dev_tar.extract(fr_dev_file, directory)
-      dev_tar.extract(en_dev_file, directory)
-      """
   return dev_path
 
 
@@ -127,23 +103,13 @@ def create_vocabulary_source(vocabulary_path, data_path, max_vocabulary_size,
         if counter % 100000 == 0:
           print("  processing line %d" % counter)
 
-        #tokens = tokenizer(line) if tokenizer else basic_tokenizer(line)
-        facts=eval(line)
-        #print(facts)
         for fact in facts:
-          #print(fact)
           for w in fact:
-            #word = _DIGIT_RE.sub(b"0", w) if normalize_digits else w
-            #print(w)
             word = w.encode('UTF-8')
-            #print(word)
             if word in vocab:
               vocab[word] += 1
             else:
               vocab[word] = 1
-            #print (vocab[word])
-            #print (vocab)
-          #asdf
       vocab_list = _START_VOCAB + sorted(vocab, key=vocab.get, reverse=True)
       if len(vocab_list) > max_vocabulary_size:
         vocab_list = vocab_list[:max_vocabulary_size]
@@ -179,23 +145,13 @@ def create_vocabulary_target(vocabulary_path, data_path, max_vocabulary_size,
         if counter % 100000 == 0:
           print("  processing line %d" % counter)
 
-        #tokens = tokenizer(line) if tokenizer else basic_tokenizer(line)
-        #print(line)
         tokens=eval(line)
-        #tokens=list(line)
-        #print(tokens)
-        #asdf
         for w in tokens:
-          #word = _DIGIT_RE.sub(b"0", w) if normalize_digits else w
           word = w.replace('\n', '\\n')
-          #print(word)
           if word in vocab:
             vocab[word] += 1
           else:
             vocab[word] = 1
-          #print (vocab[word])
-          #print (vocab)
-        #asdf
       vocab_list = _START_VOCAB + sorted(vocab, key=vocab.get, reverse=True)
       if len(vocab_list) > max_vocabulary_size:
         vocab_list = vocab_list[:max_vocabulary_size]
@@ -227,11 +183,8 @@ def initialize_vocabulary(vocabulary_path):
     rev_vocab = []
     with gfile.GFile(vocabulary_path, mode="rb") as f:
       rev_vocab.extend(f.readlines())
-    #rev_vocab = [line.strip() for line in rev_vocab]
     rev_vocab = [line[:-1] for line in rev_vocab]
-    #print (rev_vocab)
     vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
-    #print (vocab)
     return vocab, rev_vocab
   else:
     raise ValueError("Vocabulary file %s not found.", vocabulary_path)
@@ -256,20 +209,8 @@ def sentence_to_token_ids(sentence, vocabulary,
     a list of integers, the token-ids for the sentence.
   """
 
-  #return [vocabulary.get(w, UNK_ID) for w in eval(sentence)]
   v = [vocabulary.get(w.encode('UTF-8'), UNK_ID) for w in sentence]
   return v
-
-  '''
-  if tokenizer:
-    words = tokenizer(sentence)
-  else:
-    words = basic_tokenizer(sentence)
-  if not normalize_digits:
-    return [vocabulary.get(w, UNK_ID) for w in words]
-  # Normalize digits by 0 before looking words up in the vocabulary.
-  return [vocabulary.get(_DIGIT_RE.sub(b"0", w), UNK_ID) for w in words]
-  '''
 
 
 def data_to_token_ids_source(data_path, target_path, vocabulary_path,
@@ -303,9 +244,7 @@ def data_to_token_ids_source(data_path, target_path, vocabulary_path,
             token_ids = sentence_to_token_ids(fv, vocab, tokenizer,
                                               normalize_digits)
             fvs.append(token_ids)
-            #" ".join([str(tok) for tok in token_ids]
           tokens_file.write(str(fvs) + "\n")
-          #tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
 
 def data_to_token_ids_target(data_path, target_path, vocabulary_path,
                       tokenizer=None, normalize_digits=False):
@@ -337,7 +276,6 @@ def data_to_token_ids_target(data_path, target_path, vocabulary_path,
           token_ids = sentence_to_token_ids(eval(line), vocab, tokenizer,
                                             normalize_digits)
           tokens_file.write(str(token_ids) + "\n")
-          #tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
 
 def prepare_data(data_dir, en_vocabulary_size, fr_vocabulary_size, tokenizer=None):
   """Get WMT data into data_dir, create vocabularies and tokenize data.
@@ -368,27 +306,12 @@ def prepare_data(data_dir, en_vocabulary_size, fr_vocabulary_size, tokenizer=Non
   en_vocab_path = os.path.join(data_dir, "vocab%d.questions" % en_vocabulary_size)
   create_vocabulary_source(en_vocab_path, train_path + ".questions", en_vocabulary_size, tokenizer)
   create_vocabulary_target(fr_vocab_path, train_path + ".answers", fr_vocabulary_size, tokenizer)
-  #create_vocabulary_source(en_vocab_path, train_path + ".questions", en_vocabulary_size, tokenizer)
 
   # Create token ids for the training data.
   fr_train_ids_path = train_path + (".ids%d.answers" % fr_vocabulary_size)
   en_train_ids_path = train_path + (".ids%d.questions" % en_vocabulary_size)
   data_to_token_ids_target(train_path + ".answers", fr_train_ids_path, fr_vocab_path, tokenizer)
   data_to_token_ids_source(train_path + ".questions", en_train_ids_path, en_vocab_path, tokenizer)
-
-  '''
-  # Create token ids for the development data.
-  fr_dev_ids_path = dev_path + (".ids%d.answers" % fr_vocabulary_size)
-  en_dev_ids_path = dev_path + (".ids%d.questions" % en_vocabulary_size)
-  data_to_token_ids_target(dev_path + ".answers", fr_dev_ids_path, fr_vocab_path, tokenizer)
-  data_to_token_ids_source(dev_path + ".questions", en_dev_ids_path, en_vocab_path, tokenizer)
-  '''
-
-  '''
-  return (en_train_ids_path, fr_train_ids_path,
-          en_dev_ids_path, fr_dev_ids_path,
-          en_vocab_path, fr_vocab_path)
-          '''
 
   return (en_train_ids_path, fr_train_ids_path,
         en_train_ids_path, fr_train_ids_path,
@@ -451,10 +374,9 @@ def read_data(source_path, target_path, max_size=None):
       into the n-th bucket, i.e., such that len(source) < _buckets[n][0] and
       len(target) < _buckets[n][1]; source and target are lists of token-ids.
   """
-  #data_set = [[] for _ in _buckets]
   sources = []
   targets = []
-  #'''
+
   with tf.gfile.GFile(source_path, mode="r") as source_file:
     with tf.gfile.GFile(target_path, mode="r") as target_file:
       source, target = source_file.readline(), target_file.readline()
@@ -465,13 +387,9 @@ def read_data(source_path, target_path, max_size=None):
         sources.append(np.array(eval(source)))
         targets.append(np.array([GO_ID]+eval(target)+[EOS_ID]))
         source, target = source_file.readline(), target_file.readline()
-        #'''
 
   return sources, targets
 
-#sources, targets = read_data(source_path, target_path)
-
-#def pad_length_bucket(config, split_sentences=False):
 def pad_length_bucket(source, targets, config, split_sentences=True):
     inputs = source
 
@@ -480,25 +398,12 @@ def pad_length_bucket(source, targets, config, split_sentences=True):
         max_mask_len = max_sen_len
     else:
         input_lens = get_lens(inputs)
-        #mask_lens = get_lens(input_masks)
-        #max_mask_len = np.max(mask_lens)
 
     t_lens = get_lens(targets)
 
     max_t_len = np.max(t_lens)
     max_input_len = min(np.max(input_lens), config.max_allowed_inputs)
 
-    '''
-    # Encoder inputs are padded and then reversed.
-    #encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
-    encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
-    encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
-
-    # Decoder inputs get an extra "GO" symbol, and are padded then.
-    decoder_pad_size = decoder_size - len(decoder_input) - 1
-    decoder_inputs.append([data_utils.GO_ID] + decoder_input +
-                          [data_utils.PAD_ID] * decoder_pad_size)
-    #'''
 
     #pad out arrays to max
     if split_sentences:
@@ -514,9 +419,6 @@ def pad_length_bucket(source, targets, config, split_sentences=True):
 
         train = targets[:config.num_train], inputs[:config.num_train], t_lens[:config.num_train], input_lens[:config.num_train], input_masks[:config.num_train]
         valid = targets[config.num_train:], inputs[config.num_train:], t_lens[config.num_train:], input_lens[config.num_train:], input_masks[config.num_train:] 
-
-        print("max_t_len")
-        print(max_t_len)
 
         return train, valid, max_t_len, max_input_len, max_mask_len
 

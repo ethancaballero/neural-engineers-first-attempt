@@ -14,20 +14,13 @@ from tensorflow.contrib.layers import fully_connected
 from rnn_decoder_utils import rnn_decoder_simple
 import data_utils
 
-#import babi_input
-#from load_d2c_data.everything import read_data
-#from load_d2c_data.question_to_fields import read_data
-
 class Config(object):
     """Holds model hyperparams and data information."""
 
-    #batch_size = 100
-    #batch_size = 50
     batch_size = 25
 
     embed_size = 80
     hidden_size = 80
-    #hidden_size = 75
 
     max_epochs = 256
     early_stopping = 20
@@ -48,21 +41,16 @@ class Config(object):
     beta = 1
 
     drop_grus = False
-    #drop_grus = True
 
     anneal_threshold = 1000
     anneal_by = 1.5
 
     num_hops = 3
-    #num_attention_features = 4
     num_attention_features = 2
 
     max_allowed_inputs = 130
     #num_train = 9000
-    #num_train = 77
-    #num_train = 38
     num_train = 78
-
 
     floatX = np.float32
 
@@ -135,69 +123,31 @@ class SharedGRUCell(tf.nn.rnn_cell.GRUCell):
 
 class DMN_PLUS(object):
 
-    '''
-    class custom_attention_GRU_step(tf.nn.rnn_cell.RNNCell):
-        """Implement attention GRU as described by https://arxiv.org/abs/1603.01417"""
-        with tf.variable_scope("attention_gru", reuse=True, initializer=_xavier_weight_init()):
-
-            Wr = tf.get_variable("Wr")
-            Ur = tf.get_variable("Ur")
-            br = tf.get_variable("bias_r")
-
-            W = tf.get_variable("W")
-            U = tf.get_variable("U")
-            bh = tf.get_variable("bias_h")
-
-            r = tf.sigmoid(tf.matmul(rnn_input, Wr) + tf.matmul(h, Ur) + br)
-            h_hat = tf.tanh(tf.matmul(rnn_input, W) + r*tf.matmul(h, U) + bh)
-            rnn_output = g*h_hat + (1-g)*h
-
-            return rnn_output
-            '''
-
     def load_data(self, debug=False):
         """Loads train/valid/test data and sentence encoding"""
-
-        '''
-        en_train, fr_train, en_dev, fr_dev, _, _ = data_utils.prepare_data(
-        FLAGS.data_dir, FLAGS.en_vocab_size, FLAGS.fr_vocab_size)
-        '''
 
         en_train, fr_train, en_dev, fr_dev, en_vocab_path, fr_vocab_path = data_utils.prepare_data('tmp', 40000, 40000)
 
         self.source_vocab_to_id, self.source_id_to_vocab = data_utils.initialize_vocabulary(en_vocab_path)
         self.target_vocab_to_id, self.target_id_to_vocab = data_utils.initialize_vocabulary(fr_vocab_path)
-        #print self.source_vocab_to_id
-        #print self.source_id_to_vocab
-        '''
-        print self.target_vocab_to_id
-        print self.target_id_to_vocab
-        '''
-
-        '''
-        for i in range(0, 10):
-            print i
-            print self.target_id_to_vocab[int(float(i))]
-        #adsfas
-        '''
 
 
-        source_path = '/Users/ethancaballero/Neural-Engineer_Candidates/dmn-tf-alter_working_decoder_d2c/tmp/train.ids40000.questions'
-        target_path = '/Users/ethancaballero/Neural-Engineer_Candidates/dmn-tf-alter_working_decoder_d2c/tmp/train.ids40000.answers'
+        source_path = './tmp/train.ids40000.questions'
+        target_path = './tmp/train.ids40000.answers'
 
         if self.config.train_mode:
-            source_path = '/Users/ethancaballero/Neural-Engineer_Candidates/dmn-tf-alter_working_decoder_d2c/tmp/train.ids40000.questions'
-            target_path = '/Users/ethancaballero/Neural-Engineer_Candidates/dmn-tf-alter_working_decoder_d2c/tmp/train.ids40000.answers'
+            source_path = './tmp/train.ids40000.questions'
+            target_path = './tmp/train.ids40000.answers'
             sources, targets = data_utils.read_data(source_path, target_path)
         else:
-            source_path = '/Users/ethancaballero/Neural-Engineer_Candidates/dmn-tf-alter_working_decoder_d2c/tmp/test.ids40000.questions'
-            target_path = '/Users/ethancaballero/Neural-Engineer_Candidates/dmn-tf-alter_working_decoder_d2c/tmp/test.ids40000.answers'
+            source_path = './tmp/test.ids40000.questions'
+            target_path = './tmp/test.ids40000.answers'
             sources, targets = data_utils.read_data(source_path, target_path)
 
         self.train, self.valid, self.max_t_len, self.max_input_len, self.max_sen_len = data_utils.pad_length_bucket(sources, targets, self.config)
 
-        source_vocab_path = '/Users/ethancaballero/Neural-Engineer_Candidates/dmn-tf-alter_working_decoder_d2c/tmp/vocab40000.questions'
-        target_vocab_path = '/Users/ethancaballero/Neural-Engineer_Candidates/dmn-tf-alter_working_decoder_d2c/tmp/vocab40000.answers'
+        source_vocab_path = './tmp/vocab40000.questions'
+        target_vocab_path = './tmp/vocab40000.answers'
         self.source_vocab_size = data_utils.get_vocab_size(source_vocab_path)
         self.target_vocab_size = data_utils.get_vocab_size(target_vocab_path)
 
@@ -206,7 +156,6 @@ class DMN_PLUS(object):
     def add_placeholders(self):
         """add data placeholder to graph"""
         self.target_placeholder = tf.placeholder(tf.int32, shape=(self.config.batch_size, self.max_t_len))
-        #self.target_placeholder = tf.placeholder(tf.int32, shape=(self.max_t_len, self.config.batch_size, self.vocab_size))
         self.input_placeholder = tf.placeholder(tf.int32, shape=(self.config.batch_size, self.max_input_len, self.max_sen_len))
 
         self.target_len_placeholder = tf.placeholder(tf.int32, shape=(self.config.batch_size,))
@@ -223,34 +172,18 @@ class DMN_PLUS(object):
         attn_length = 1
         '''^DEFINATELY TRY OUT DIFFERENT LENGTHS'''
         with tf.variable_scope('input/forward', initializer=_xavier_weight_init(), reuse=True):
-            '''
-            self.intra_attention_GRU_cell_fw = tf.nn.rnn_cell.DropoutWrapper(tf.contrib.rnn.AttentionCellWrapper(
-                self.shared_gru_cell_before_dropout, attn_length, state_is_tuple=True), input_keep_prob=self.dropout_placeholder, output_keep_prob=self.dropout_placeholder)
-                #'''
             self.intra_attention_GRU_cell_fw = tf.nn.rnn_cell.DropoutWrapper(tf.contrib.rnn.AttentionCellWrapper(
                 self.shared_gru_cell_before_dropout, attn_length, state_is_tuple=False), input_keep_prob=self.dropout_placeholder, output_keep_prob=self.dropout_placeholder)
                 
         with tf.variable_scope('input/backward', initializer=_xavier_weight_init(), reuse=True):
-            '''
-            self.intra_attention_GRU_cell_bw = tf.nn.rnn_cell.DropoutWrapper(tf.contrib.rnn.AttentionCellWrapper(
-                self.shared_gru_cell_before_dropout, attn_length, state_is_tuple=True), input_keep_prob=self.dropout_placeholder, output_keep_prob=self.dropout_placeholder)
-                #'''
             self.intra_attention_GRU_cell_bw = tf.nn.rnn_cell.DropoutWrapper(tf.contrib.rnn.AttentionCellWrapper(
                 self.shared_gru_cell_before_dropout, attn_length, state_is_tuple=False), input_keep_prob=self.dropout_placeholder, output_keep_prob=self.dropout_placeholder)
                 
-                #"""
-
-        '''
-        self.intra_attention_GRU_cell = tf.nn.rnn_cell.DropoutWrapper(tf.contrib.rnn.AttentionCellWrapper(
-            self.gru_cell_before_dropout, attn_length), input_keep_prob=self.dropout_placeholder, output_keep_prob=self.dropout_placeholder)
-            #'''
-
         # apply droput to grus if flag set
         if self.config.drop_grus:
             self.gru_cell = tf.nn.rnn_cell.DropoutWrapper(gru_cell, input_keep_prob=self.dropout_placeholder, output_keep_prob=self.dropout_placeholder)
         else:
             self.gru_cell = gru_cell
-            #self
 
         with tf.variable_scope("memory/attention", initializer=_xavier_weight_init()):
             b_1 = tf.get_variable("bias_1", (self.config.embed_size,))
@@ -291,11 +224,8 @@ class DMN_PLUS(object):
         """Adds trainable variables which are later (not?) reused"""  
         for i in range(self.config.num_hops): 
             with tf.variable_scope("memory/decode" + "/" + str(i), initializer=_xavier_weight_init()):
-                #Wt = tf.get_variable("W_t", (2*self.config.hidden_size+self.config.embed_size, self.config.hidden_size))
-                #'''
                 Wt = tf.get_variable("W_t", (2*self.config.hidden_size, self.config.hidden_size))
                 bt = tf.get_variable("bias_t", (self.config.hidden_size,))
-                #'''
 
 
     def get_predictions(self, output):
@@ -310,7 +240,6 @@ class DMN_PLUS(object):
       
     def add_loss_op(self, output):
         """Calculate loss"""
-        # optional strong supervision of attention with supporting facts
 
         gate_loss = 0
         '''
@@ -324,19 +253,11 @@ class DMN_PLUS(object):
         loss = self.config.beta*tf.reduce_sum(tf.nn.sparse_softmax_cross_entropy_with_logits(output, self.answer_placeholder)) + gate_loss
         '''
 
-        """pred is going to have to have number added to it depending on which rnn weight space is used for selection"""
-        """or self.answer_placeholder is going to have number sutracted from it depending on which rnn weight space is used for selection"""
-
-        """ok, you need to pad the rnn_output_hidden_state with zeros at front and back, such that locations of probs are in the same location as one_hot_encoding of single_output""" 
-
         loss = 0
 
         # (B, decode_length) -> (decode_length, B)
         m_test = tf.transpose(self.target_placeholder, perm=[1,0])
 
-        # self.target_placeholder = tf.transpose(self.target_placeholder, perm=[1,0])
-
-        #for idx, single_output in enumerate(target_len_placeholder):
         for idx, single_output in enumerate(output):
             loss += self.config.beta * tf.reduce_sum(
                 tf.nn.sparse_softmax_cross_entropy_with_logits(output[idx], m_test[idx])) + gate_loss
@@ -363,28 +284,12 @@ class DMN_PLUS(object):
 
         train_op = opt.apply_gradients(gvs)
         return train_op
-  
-    '''
-    #might use this later for attending previous decode states
-    def get_question_representation(self, embeddings):
-        """Get question vectors via embedding and GRU"""
-
-        questions = tf.nn.embedding_lookup(embeddings, self.question_placeholder)
-
-        output_throwaway, q_vec = tf.nn.dynamic_rnn(self.gru_cell, questions, dtype=np.float32, sequence_length=get_seq_length(questions))
-
-        return q_vec
-        '''
 
     def get_input_representation(self, embeddings):
         """Get fact (sentence) vectors via embedding, positional encoding and bi-directional GRU"""
         # get word vectors from embedding
         inputs = tf.nn.embedding_lookup(embeddings, self.input_placeholder)
 
-        '''
-        # use encoding to get sentence representation
-        inputs = tf.reduce_sum(inputs * self.encoding, 2)
-        '''
 
         #https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/rnn/python/ops/rnn_cell.py#L1005
         #https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/rnn/python/kernel_tests/rnn_cell_test.py#L382
@@ -403,14 +308,10 @@ class DMN_PLUS(object):
         shared_bidirectional_dynamic_rnn = tf.make_template('shared_bidirectional_dynamic_rnn', tf.nn.bidirectional_dynamic_rnn)
 
         for idx, raw_i in enumerate(inputs):
-        #for idx, raw_i in enumerate(inputs[1:3]):
             '''MIGHT WANT USE WAVENET/BYTENET ENCODER HERE INSTEAD BECAUSE IT SEEMS TO HAVE IMPLICIT ALIGNMENT'''
             '''https://arxiv.org/pdf/1601.06733.pdf apparently being able to attend to individual words (LSTMN h_states) (as oppsosed to last hstate) after attentive encoding only improves by 0.2%, so not worth adding intra for after encode, only during'''
 
-            #_, pre_fact_fw_and_bw = shared_bidirectional_dynamic_rnn(self.intra_attention_GRU_cell_fw, self.intra_attention_GRU_cell_bw, raw_i, dtype=np.float32, sequence_length=get_seq_length(raw_i))
-            '''need to check this, why does output yield  (100, 46, 80), but state (final) yield (?, 80), shouldn't final_state be (100, 80)'''
             pre_fact_fw_and_bw, _ = shared_bidirectional_dynamic_rnn(self.intra_attention_GRU_cell_fw, self.intra_attention_GRU_cell_fw, raw_i, dtype=np.float32, sequence_length=get_seq_length(raw_i))
-            '''^MAYBE ADD AUXILLARY TASK OF AUTENCODING SENTENCES (LIKE IN NEURAL REASONER) TO PREVENT OVERFITTING'''
 
             #they reversed it twice, once before and once after: look at https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/ops/rnn.py#L672 and L663
             fw_encode = tf.transpose(pre_fact_fw_and_bw[0], perm=[1,0,2])[-1] #hidden state at last word of sent when conditioned 0 to _length_
@@ -420,11 +321,7 @@ class DMN_PLUS(object):
 
         pre_facts = tf.transpose(tf.pack(encoded_inputs), perm=[1,0,2])
 
-        '''WOULD PUTTING INTRA SENTENCE ATTN HERE BE REDUNDANT OR PERFORMANT'''
-        '''do you need this scope?'''
-        #with tf.variable_scope("input_fusion", reuse=True, initializer=_xavier_weight_init()):
         outputs_fw_and_bw, _ = tf.nn.bidirectional_dynamic_rnn(self.gru_cell, self.gru_cell, pre_facts, dtype=np.float32, sequence_length=get_seq_length(pre_facts))
-
 
         fact_vecs = outputs_fw_and_bw[0] + outputs_fw_and_bw[1]
 
@@ -442,7 +339,6 @@ class DMN_PLUS(object):
             W_2 = tf.get_variable("W_2")
             b_2 = tf.get_variable("bias_2")
 
-            #features = [fact_vec*q_vec, fact_vec*prev_memory, tf.abs(fact_vec - q_vec), tf.abs(fact_vec - prev_memory)]
             features = [fact_vec*prev_memory, tf.abs(fact_vec - prev_memory)]
 
             feature_vec = tf.concat(1, features)
@@ -501,11 +397,7 @@ class DMN_PLUS(object):
 
         attentions = tf.transpose(tf.pack(attentions))
 
-        #print attentions
-
         self.attentions.append(attentions)
-
-        #print self.attentions
 
         softs = tf.nn.softmax(attentions)
         softs = tf.split(1, self.max_input_len, softs)
@@ -549,26 +441,15 @@ class DMN_PLUS(object):
         '''^FIGURE OUT HOW THEIR Y-LSTM PREVENTS MODEL FROM HAVING TO BE INITIALIZED WITH FINAL STATE OF ENCODER'''
 
         print '==> build episodic memory'
-
         # generate n_hops episodes
         '''prev_memory = q_vec'''
-        '''MAYBE PASS IN ALL HIDDEN STATES / TOKENS HERE SO THAT IT HAS EXPLICIT REPRESENTATION OF EVERYTHING IT'S OUTPUT'''
-        '''that would be the replacement for q_vec'''
-        '''will need to look at where q_vec was in dmn-tf-alter_working_decoder'''
-        #prev_memory = prev_a_all
-        #print prev_a_all
         prev_memory = prev_a_all[-1]
         prev_token = prev_y_all[-1]
 
-        #'''
         concat_all = []
         '''maybe add an extra non-linear projection layer like metamind co-attention qa; or maybe don't because it already is using differemt weights than decoder'''
         for i in range(len(prev_a_all)):
             concat_all.append(tf.concat(1, [prev_a_all[i], prev_y_all[i]]))
-            #'''
-
-        #print prev_a_all
-        #print prev_memory
 
         '''amount of hops here will be decided by threshold/reinforcement?'''
         for i in range(self.config.num_hops):
@@ -580,7 +461,6 @@ class DMN_PLUS(object):
             episode = self.generate_episode(prev_memory, fact_vecs, concat_all)
             '''
 
-
             '''replace this with tf.make_template'''
             with tf.variable_scope("decode" + "/" + str(i), initializer=_xavier_weight_init(), reuse=True):
                 Wt = tf.get_variable("W_t")
@@ -590,33 +470,15 @@ class DMN_PLUS(object):
 
         last_mem = prev_memory
 
-        #concat = tf.concat(1, [prev_a_all[-1], prev_y_all[-1]])
         concat = concat_all[-1]
 
         h_state = self.normal_GRU_step(concat, last_mem)
         vocab_probs, output_probs = self.decoder_step(h_state)
 
-        '''
-        print prev_a
-        print prev_y
-        print h_state
-        print output_probs
-
-        all_h_state = prev_a.append(h_state)
-        all_output_probs = prev_y.append(output_probs)
-
-        print all_h_state
-        print all_output_probs
-        '''
-
         return h_state, output_probs, vocab_probs
-        #return all_h_state, all_output_probs, vocab_probs
-
 
     def inference(self):
         """Performs inference on the DMN model"""
-
-        #word_embedding = np.random.uniform(-config.embedding_init, config.embedding_init, (len(ivocab), config.embed_size))
 
         # set up embedding
         embeddings = tf.Variable(self.word_embedding.astype(np.float32), name="Embedding")
@@ -628,21 +490,13 @@ class DMN_PLUS(object):
 
         # keep track of attentions for possible strong supervision
         self.attentions = []
-        #self.prev_a_all = []
-        #self.prev_y_all = []
 
         # memory module
         with tf.variable_scope("memory", initializer=_xavier_weight_init(), reuse=None):
             '''you have an arvitrary length and prev_a and prev_y here for now'''
 
-            #'''
-            #prev_a = tf.zeros_like(tf.transpose(fact_vecs, perm=[1,0,2])[0])
             prev_a = tf.transpose(fact_vecs, perm=[1,0,2])[-1]
             prev_y = tf.zeros([self.config.batch_size, self.target_vocab_size])
-            #'''
-
-            #prev_a = [tf.zeros_like(tf.transpose(fact_vecs, perm=[1,0,2])[0])]
-            #prev_y = [tf.zeros([self.config.batch_size, self.target_vocab_size])]
 
             output=[]
             prev_a_all=[]
@@ -652,7 +506,6 @@ class DMN_PLUS(object):
                 print i
                 prev_a_all.append(prev_a)
                 prev_y_all.append(prev_y)
-                #prev_a, prev_y, vocab_probs = self.attention_decode_for_each_output_step(prev_a, prev_y, fact_vecs)
                 prev_a, prev_y, vocab_probs = self.attention_decode_for_each_output_step(prev_a_all, prev_y_all, fact_vecs)
                 output.append(vocab_probs)
 
@@ -687,11 +540,7 @@ class DMN_PLUS(object):
         # shuffle data
         p = np.random.permutation(len(data[0]))
         tp, ip, tl, il, im = data
-        #targets[:config.num_train], inputs[:config.num_train], t_lens[:config.num_train], input_lens[:config.num_train], input_masks[:config.num_train]
         tp, ip, tl, il, im = tp[p], ip[p], tl[p], il[p], im[p] 
-
-        print total_steps
-        print range(total_steps)
 
         for step in range(total_steps):
             index = range(step*config.batch_size,(step+1)*config.batch_size)
@@ -707,47 +556,8 @@ class DMN_PLUS(object):
             if train_writer is not None:
                 train_writer.add_summary(summary, num_epoch*total_steps + step)
 
-            #answers = a[step*config.batch_size:(step+1)*config.batch_size]
             '''IS ACCURACY RIGHT, DOES IT STILL WORK NOW THAT YOU'VE SWITCHED FROM TOKEN TO SEQUENCE''' 
             targets = tp[step*config.batch_size:(step+1)*config.batch_size]
-
-            """
-            '''this is just the first element in the batch printed as a sample of how generations are changing''' 
-            print "description"
-            print ip[index][0]
-            for i in ip[index][0]:
-                '''
-                ss=''
-                for j in i:
-                    ss+=str(self.source_id_to_vocab[int(j)]+' ')
-                print ss
-                '''
-                #print [" ".join(str(self.source_id_to_vocab[int(j)])) for j in i]
-                print [self.source_id_to_vocab[int(j)] for j in i if int(j) is not 0]
-
-
-
-            print "pred"
-            pred_seq = []
-            #print('len(pred)')
-            print(len(pred))
-            for i in range(len(pred)):
-                pred_seq.append(pred[i][0])
-            print ["".join(str(self.target_id_to_vocab[int(pred_i)])) for pred_i in pred_seq]
-            #print "".join([(str(self.target_id_to_vocab[int(pred_i)])) for pred_i in pred[0]])
-            print "".join([(str(self.target_id_to_vocab_w_new_line(int(pred_i)))) for pred_i in pred_seq])
-
-            print "target"
-            print targets[0]
-            #print "".join([(str(self.target_id_to_vocab[int(target)])) for target in targets[0] if int(target) is not 0])
-            print "".join([(str(self.target_id_to_vocab_w_new_line(int(target)))) for target in targets[0] if int(target) is not 0])
-            
-            '''
-            #stop after one iter for only quick check run
-            stop_it
-            #'''
-            """
-
 
 
             accuracy += np.sum(pred == targets)/float(len(targets))

@@ -11,94 +11,16 @@ import html2text
 import time
 import argparse
 import datetime
-#from gluon import current
+
 user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
-#user_agent = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5"
 
-'''
 def get_request(url, headers={}):
-    """
-        Make a HTTP GET request to a url
-        @param url (String): URL to make get request to
-        @param headers (Dict): Headers to be passed along
-                               with the request headers
-        @return: Response object or -1 or {}
-    """
-
-    i = 0
-    while i < current.MAX_TRIES_ALLOWED:
-        try:
-            response = requests.get(url,
-                                    headers=headers,
-                                    proxies=current.PROXY,
-                                    timeout=current.TIMEOUT)
-        except RuntimeError:
-            return -1
-        except Exception as e:
-            return {}
-
-        if response.status_code == 200:
-            return response
-        i += 1
-
-    if response.status_code == 404 or response.status_code == 400:
-        return {}
-
-    return -1
-    '''
-def get_request(url, headers={}):
-    """
-        Make a HTTP GET request to a url
-        @param url (String): URL to make get request to
-        @param headers (Dict): Headers to be passed along
-                               with the request headers
-        @return: Response object or -1 or {}
-    """
-
-    '''
-    i = 0
-    #while i < current.MAX_TRIES_ALLOWED:
-    try:
-        response = requests.get(url,
-                                headers=headers,
-                                proxies=current.PROXY,
-                                timeout=current.TIMEOUT)
-    except RuntimeError:
-        return -1
-    except Exception as e:
-        return {}
-
-    if response.status_code == 200:
-        return response
-    i += 1
-
-    if response.status_code == 404 or response.status_code == 400:
-        return {}
-
-    return -1
-    '''
-
     response = requests.get(url,
                                 headers=headers)
 
     return response
 
-#def get_submissions(self, last_retrieved):
 def get_submissions():
-    """
-        Retrieve HackerEarth submissions after last retrieved timestamp
-        @param last_retrieved (DateTime): Last retrieved timestamp for the user
-        @return (Dict): Dictionary of submissions containing all the
-                        information about the submissions
-    """
-
-    '''
-    if self.handle:
-        handle = self.handle
-    else:
-        return {}
-        '''
-
     handle = 'prashantpandeyfun10'
 
     url = "https://www.hackerearth.com/submissions/" + handle
@@ -126,9 +48,8 @@ def get_submissions():
 
     it = 1
     submissions = {handle: {}}
-    #for page_number in xrange(1, 1000):
     for page_number in xrange(1, 5):
-        print page_number
+        print(page_number)
         submissions[handle][page_number] = {}
         url = "https://www.hackerearth.com/AJAX/feed/newsfeed/submission/user/" + handle + "/?page=" + str(page_number)
 
@@ -138,8 +59,7 @@ def get_submissions():
             return -1
 
         json_response = tmp.json()
-        #print json_response
-        #asdf
+
         if json_response["status"] == "ERROR":
             break
 
@@ -168,10 +88,6 @@ def get_submissions():
                                            datetime.timedelta(minutes=630)
             curr = time.strptime(str(time_stamp), "%Y-%m-%d %H:%M:%S")
 
-            '''
-            if curr <= last_retrieved:
-                return submissions
-                '''
             append(str(time_stamp))
 
             # Problem Name/URL

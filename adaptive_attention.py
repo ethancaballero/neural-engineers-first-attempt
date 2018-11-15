@@ -3,7 +3,6 @@ from tensorflow.python.ops import  rnn, rnn_cell, seq2seq
 
 from utils import get_seq_length, _add_gradient_noise, _position_encoding, _xavier_weight_init, _last_relevant, batch_norm
 
-#from embedding_utils import input_projection3D
 
 #from https://github.com/DeNeutoy/act-rte-inference/blob/master/AdaptiveIAAModel.py
 
@@ -16,12 +15,11 @@ class Adaptive_Episodes_Config(object):
   num_steps = 20
   encoder_size = 128
   inference_size = 256
-  #hidden_size = 128
   max_epoch = 4
   max_max_epoch = 3
   keep_prob = 0.8
   lr_decay = 0.8
-  #batch_size = 32
+  batch_size = 32
   vocab_size = 10000
   bidirectional = False
 
@@ -30,11 +28,8 @@ class Adaptive_Episodes_Config(object):
   train_embeddings = True
   use_embeddings = False
 
-  #eps = 0.01
-  #eps = 0.5
   eps = 0.1
   max_computation = 20
-  #max_computation = 2
   step_penalty = 0.00001
 
 #class AdaptiveIAAModel(object):
@@ -47,57 +42,14 @@ class Adaptive_Episodes(object):
                  update_embeddings=True, is_training=False):
 
         self.config = config
-        '''
-        # make it easy to get this info out of the model later
-        self.stopping_probs = stopping_probs
-        self.remainder = 1.0 - stopping_probs
-        self.iterations = iterations
-        iterations = tf.Print(self.iterations, [self.iterations], message="Iterations: ", summarize=20)
-        #remainder = tf.Print(self.remainder, [self.remainder], message="Remainder: ", summarize=20)
-        stopping = tf.Print(self.stopping_probs, [self.stopping_probs], message="Stop_probs: ", summarize=20)
-        #prediction = tf.Print(prediction, [prediction], message="Prediction: ", summarize=20)
-        # softmax over outputs to generate distribution over [neutral, entailment, contradiction]
-        '''
-
-    '''
-    def attention(self, query, attendees, scope):
-        """Put attention masks on hidden using hidden_features and query."""
-
-        attn_length = attendees.get_shape()[1].value
-        attn_size = attendees.get_shape()[2].value
-
-        with tf.variable_scope(scope):
-
-            hidden = tf.reshape(attendees, [-1, attn_length, 1, attn_size])
-            k = tf.get_variable("attention_W", [1,1,attn_size,attn_size])
-
-            features = tf.nn.conv2d(hidden, k, [1, 1, 1, 1], "SAME")
-            v = tf.get_variable("attention_v", [attn_size])
-
-            with tf.variable_scope("attention"):
-
-                y = tf.nn.rnn_cell._linear(query, attn_size, True)
-
-                y = tf.reshape(y, [-1, 1, 1, attn_size])
-                # Attention mask is a softmax of v^T * tanh(...).
-                s = tf.reduce_sum(v * tf.tanh(features + y), [2, 3])
-                a = tf.nn.softmax(s)
-                # Now calculate the attention-weighted vector d.
-                d = tf.reduce_sum(tf.reshape(a, [-1, attn_length, 1, 1]) * hidden,[1, 2])
-                ds = tf.reshape(d, [-1, attn_size])
-
-        return ds
-        '''
 
     def gate_mechanism(self, gate_input, scope):
         with tf.variable_scope(scope):
 
             if self.bidirectional:
-                #size = 3*2*self.config.encoder_size + self.config.inference_size
                 size = 3*2*self.config.encoder_size + self.hidden_size
                 out_size = 2*self.config.encoder_size
             else:
-                #size = 3*self.config.encoder_size + self.config.inference_size
                 size = 3*self.config.encoder_size + self.hidden_size
                 out_size = self.config.encoder_size
 
@@ -134,7 +86,6 @@ class Adaptive_Episodes(object):
             W_2 = tf.get_variable("W_2")
             b_2 = tf.get_variable("bias_2")
 
-            #features = [fact_vec*q_vec, fact_vec*prev_memory, tf.abs(fact_vec - q_vec), tf.abs(fact_vec - prev_memory)]
             features = [fact_vec*prev_memory, tf.abs(fact_vec - prev_memory)]
 
             feature_vec = tf.concat(1, features)
@@ -195,21 +146,12 @@ class Adaptive_Episodes(object):
         episode = self.generate_episode(prev_memory, fact_vecs, concat_all)
         '''
 
-        #with tf.variable_scope('sigmoid_activation_for_pondering'):
-        #with tf.variable_scope('sigmoid_activation_for_pondering', reuse=True):
-            #p = tf.squeeze(tf.sigmoid(tf.nn.rnn_cell._linear(episode, 1, True)))
         p = tf.squeeze(tf.sigmoid(self.shared_linear_layer(episode, 1, True)))
 
         new_batch_mask = tf.logical_and(tf.less(prob + p,self.one_minus_eps),batch_mask)
         new_float_mask = tf.cast(new_batch_mask, tf.float32)
         prob += p * new_float_mask
         prob_compare += p * tf.cast(batch_mask, tf.float32)
-
-        #iterations = tf.Print(self.counter_int, [self.counter_int], message="Iterations: ", summarize=20)
-        #iterations = tf.Print(self.counter, [self.counter], message="Iterations: ", summarize=20)
-        #remainder = tf.Print(self.remainder, [self.remainder], message="Remainder: ", summarize=20)
-        #stopping = tf.Print(self.stopping_probs, [self.stopping_probs], message="Stop_probs: ", summarize=20)
-        #prediction = tf.Print(prediction, [prediction], message="Prediction: ", summarize=20)
 
         '''based on github.com/tensorflow/tensorflow/issues/5608#issuecomment-260549420'''
         #untied
@@ -223,26 +165,17 @@ class Adaptive_Episodes(object):
         def use_remainder():
             remainder = tf.constant(1.0, tf.float32,[self.batch_size]) - prob
             remainder_expanded = tf.expand_dims(remainder,1)
-            #tiled_remainder = tf.tile(remainder_expanded,[1,self.config.inference_size])
             tiled_remainder = tf.tile(remainder_expanded,[1,self.hidden_size])
 
-            #acc_state = (new_state * tiled_remainder) + acc_states
             acc_state = tf.nn.relu(tf.matmul(tf.concat(1, [acc_states, episode * tiled_remainder]), Wt) + bt)
             return acc_state
 
         def normal():
             p_expanded = tf.expand_dims(p * new_float_mask,1)
-            #tiled_p = tf.tile(p_expanded,[1,self.config.inference_size])
             tiled_p = tf.tile(p_expanded,[1,self.hidden_size])
 
-            #acc_state = (new_state * tiled_p) + acc_states
             acc_state = tf.nn.relu(tf.matmul(tf.concat(1, [acc_states, episode * tiled_p]), Wt) + bt)
             return acc_state 
-
-        
-        '''#ORIGINAL
-        new_memory = tf.nn.relu(tf.matmul(tf.concat(1, [memory, episode]), Wt) + bt)
-        #'''
 
         counter += tf.constant(1.0,tf.float32,[self.batch_size]) * new_float_mask
         counter_condition = tf.less(counter,self.N)
@@ -267,7 +200,6 @@ class Adaptive_Episodes(object):
 
         self.shared_linear_layer = tf.make_template('shared_linear_layer', tf.nn.rnn_cell._linear)
 
-        #self.one_minus_eps = tf.constant(1.0 - self.config.eps, tf.float32,[self.batch_size])
         self.one_minus_eps = tf.constant(1.0 - epsilon, tf.float32,[self.batch_size])
         self.N = tf.constant(max_num_hops, tf.float32,[self.batch_size])
 

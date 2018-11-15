@@ -313,7 +313,7 @@ def convert_ids_to_ast(source_as_ids):
 
 
 #'''
-print convert_ids_to_ast(linearized_ids_of_ast)
+print(convert_ids_to_ast(linearized_ids_of_ast))
 #'''
 
 '''

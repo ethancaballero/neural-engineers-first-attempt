@@ -21,14 +21,6 @@ def get_tags():
     problems = re.findall('<span class="dark" id="(.+?)-solved">', t.text, re.S)
     tags = re.findall('dark track-tags">(.+?)</td>', t.text, re.S)
 
-    #print "solution_url_clones"
-    #print solution_url_clones
-
-    #solution_key = solution_url_clones[0]
-
-    print len(problems)
-    print len(tags)
-
     problem_and_tags = {}
 
     for i in range(len(problems)):
@@ -49,14 +41,6 @@ def get_tags():
     problems = re.findall('<span class="dark" id="(.+?)-solved">', t.text, re.S)
     tags = re.findall('dark track-tags">(.+?)</td>', t.text, re.S)
 
-    #print "solution_url_clones"
-    #print solution_url_clones
-
-    #solution_key = solution_url_clones[0]
-
-    print len(problems)
-    print len(tags)
-
     for i in range(len(problems)):
         if '   \n   ' in tags[i]:
             tags[i] = ''
@@ -70,12 +54,6 @@ def get_tags():
 
 
 a=get_tags()
-print a 
-print len(a)
-print a.items()[0]
 
-for k in a.items():
-    #print k
     description_file = open("tags.txt", 'a')
     description_file.write(str(k).replace('(','{').replace(')','}').replace("{u'", "{'").replace("[u'", "['").replace(", u'", ", '").replace("', [", "': [").encode("utf-8") + "\n")
-    #description_file.write(str(k).replace('(','{').replace(')','}') + "\n")

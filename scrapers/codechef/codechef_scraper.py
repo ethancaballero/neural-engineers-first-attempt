@@ -18,7 +18,7 @@ def escape_lt(html):
             html_list[index] = '&lt;'
     return ''.join(html_list)
 
-'''not sure if this one makes sense'''
+'''TODO: not sure if this one makes sense'''
 def escape_gt(html):
     html_list = list(html)
     for index in xrange(0, len(html) - 1):
@@ -82,18 +82,9 @@ def get_solution_ids(name, language):
 		html_content = page1.text + page2.text
 
 	messages = []
-
-	print url
  
 	solution_id = re.findall("href='/viewsolution/(.+?)' target='_blank'>View", html_content)
 	pts = re.findall("/>\\[(.+?)pts\\]<", html_content)
-
-	#'''
-	print solution_id
-	print pts
-	print len(pts)
-	print len(solution_id)
-	#'''
 
 	if len(pts) != 0 and len(solution_id) != 0:
 
@@ -107,7 +98,7 @@ def get_solution_ids(name, language):
 	else:
 		pass
 
-	print len(messages)
+	print(len(messages))
 
 	return messages
 
@@ -115,8 +106,6 @@ def get_description(i):
 	descriptions = []
 	left_out = []
 	failed_to_download_d = []
-
-	print i
 
 	url = "https://www.codechef.com/api/contests/PRACTICE/problems/" + str(i)
 
@@ -149,10 +138,7 @@ def get_description(i):
 
 		keep_lt = escape_lt(first_clean)
 
-		#second_clean = keep_lt
-		#'''
 		second_clean = escape_gt(keep_lt)
-		#'''
 
 		body = BeautifulSoup(second_clean).get_text()
 
@@ -192,9 +178,6 @@ def get_solutions(solution_ids):
 	return solutions
 
 def get_solution(solution_id):
-	#solutions = []
-	#failed_to_download_s = []
-	#for i in solution_ids:
 	failed_to_download = None
 	url = "https://www.codechef.com/viewplaintext/" + str(solution_id)
 	
@@ -205,23 +188,13 @@ def get_solution(solution_id):
 			page = requests.get(url)
 	html_content = page.text
 
-	'''
-	if html_content==None:
-		failed_to_download = solution_id
-		'''
-
 	text = BeautifulSoup(html_content, "html.parser").get_text()
-
-	#'''figure out if escape_lt needs to go here'''
-
-	print len(text)
-	#print text
 
 
 	failed_to_download = None
 	solution = None
 
-	#print text
+	#print(text)
 	if len(text)==0 or re.search('var _sf_startpt = (new Date()).getTime()', text) != None:
 		failed_to_download = solution_id
 	else:
@@ -237,7 +210,6 @@ def download_all_challenge_names(filename):
 
 	problems = get_problem_list("https://www.codechef.com/problems/school/?sort_by=SuccessfulSubmission&sorting_order=desc")
 
-	#print problems
 
 	target.write(str("\neasy\n"))
 	target.write(str(problems))
@@ -269,8 +241,6 @@ def download_all_challenge_names(filename):
 	target.write(str(problems))
 	#'''
 
-#download_all_challenge_names('codechef_problem_names.txt')
-
 def download_descriptions_solutions(filename, index_n):
 	#root_dir = 'codechef_alter_data'
 	root_dir = 'codechef_data_currently'
@@ -282,13 +252,6 @@ def download_descriptions_solutions(filename, index_n):
 
 	start = index_n_int + (500*index_n_int)
 	end = start + 499
-
-	print "start"
-	print start
-
-	print "end"
-	print end 
-
 
 
 	easy = []
@@ -324,19 +287,7 @@ def download_descriptions_solutions(filename, index_n):
 	all_names_p = []
 	all_names =[["easy", easy], ["medium", medium], ["hard", hard], ["harder", harder], ["hardest", hardest], ["external", external]]
 	
-	#all_names =[["external", external]]
-
 	already_scraped = []
-
-	'''
-	for ndx, n in enumerate(all_names_before[0][1]):
-		if n not in already_scraped:
-			all_names_p.append(n)
-			'''
-
-	print "all_names"
-	#print all_names_p
-	print len(all_names_p)
 
 	for ndx, n in enumerate(all_names):
 		category = all_names[ndx][0]
@@ -377,22 +328,15 @@ def download_descriptions_solutions(filename, index_n):
 					ids = get_solution_ids(i, l)
 					ids_l.append(ids)
 
-					print ids
-					#solutions, failed_to_download_s = get_solutions(ids)
 					solutions = get_solutions(ids)
-					#print failed_to_download_s
 
 					solution_dir = save_dir + "/solutions_" + l
 
 					if not os.path.exists(solution_dir):
 					    os.makedirs(solution_dir)
 
-					#print solutions
-
 					for jdx, j in enumerate(solutions):
-						#print len(solutions[j])
 						if len(solutions[j]) < 10000:
-							#print jdx
 							solution_file_path = solution_dir + "/" + j + ".txt"
 							solution_file = open(solution_file_path, 'w')
 							solution_file.write(solutions[j])
@@ -401,46 +345,16 @@ def download_descriptions_solutions(filename, index_n):
 				if len(ids_l[0]) == 0 and len(ids_l[1]) == 0:
 					shutil.rmtree(save_dir)
 
-			#url = 'https://www.codechef.com/status/%d?sort_by=All&sorting_order=asc&language=4&status=15&handle=&Submit=GO' % (name)
-			#'''
 
-	#'''
-	print "Finished download process"
+	print("Finished download process")
 	if len(failed_to_download) > 0:
 		print "Following challenges failed to download: " + str(failed_to_download)
-		#'''
 
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--index', type=str, default="1", help='')
+	args = parser.parse_args()
 
-#download_all_challenge_names('codechef_problem_names.txt')	
-parser = argparse.ArgumentParser()
-parser.add_argument('--index', type=str, default="index", help='')
-args = parser.parse_args()
+	index_n = args.index
 
-index_n = args.index
-
-#get_description('INTEX1')
-#print get_description('SNAKGAME')[0][0]
-#a = get_description('INTEX1')
-#print a[0][0]
-'''
-download_descriptions_solutions('codechef_problem_names.txt', index_n)
-#'''
-
-#'''
-download_descriptions_solutions('codechef_problem_names_left.txt', index_n)
-#'''
-
-#get_solutions(['10610556'])
-#print get_solution_ids('FIBQ', 'c++')
-#print get_solution_ids('CIELAB', 'c++')
-
-
-
-#download_descriptions_solutions('codechef_problem_names_easy.txt')
-#download_descriptions_solutions('codechef_problem_names_easy_short.txt')
-
-
-
-
-
-
+	download_descriptions_solutions('codechef_problem_names.txt', index_n)

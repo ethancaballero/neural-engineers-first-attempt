@@ -18,8 +18,6 @@ args = parser.parse_args()
 
 dmn_type = args.dmn_type if args.dmn_type is not None else "plus"
 
-#print dmn_type
-
 if dmn_type == "plus_preset":
     from dmn_plus_preset import Config
     config = Config()
@@ -32,7 +30,6 @@ else:
 config.l2 = args.l2_loss if args.l2_loss is not None else 0.001
 num_runs = args.num_runs if args.num_runs is not None else 1
 
-#print 'Training DMN ' + dmn_type + ' on babi task', config.babi_id
 print('Training on D2C')
 
 best_overall_val_loss = float('inf')
